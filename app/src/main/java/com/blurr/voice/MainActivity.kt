@@ -121,14 +121,6 @@ class MainActivity : BaseNavigationActivity() {
         super.onCreate(savedInstanceState)
 
         auth = Firebase.auth
-        val currentUser = auth.currentUser
-        val profileManager = UserProfileManager(this)
-
-        if (currentUser == null || !profileManager.isProfileComplete()) {
-            startActivity(Intent(this, LoginActivity::class.java))
-            finish()
-            return
-        }
         onboardingManager = OnboardingManager(this)
         if (!onboardingManager.isOnboardingCompleted()) {
             Logger.d("MainActivity", "User is logged in but onboarding not completed. Relaunching permissions stepper.")
@@ -237,11 +229,6 @@ class MainActivity : BaseNavigationActivity() {
 
     override fun onStart() {
         super.onStart()
-        if (auth.currentUser == null) {
-            startActivity(Intent(this, LoginActivity::class.java))
-            finish()
-            return
-        }
         
         showLoading(true)
         performBillingCheck()
@@ -303,11 +290,7 @@ class MainActivity : BaseNavigationActivity() {
     }
 
     private fun requestLimitIncrease() {
-        val userEmail = auth.currentUser?.email
-        if (userEmail.isNullOrEmpty()) {
-            Toast.makeText(this, "Could not get your email. Please try again.", Toast.LENGTH_SHORT).show()
-            return
-        }
+        val userEmail = auth.currentUser?.email ?: "unknown"
 
         val recipient = "ayush0000ayush@gmail.com"
         val subject = "I am facing issue in"
