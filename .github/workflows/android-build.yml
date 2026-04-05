@@ -1,0 +1,79 @@
+name: Android Build
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+
+    - name: Create local.properties
+      run: |
+        echo "GEMINI_API_KEYS=dummy" > local.properties
+        echo "TAVILY_API=dummy" >> local.properties
+        echo "MEM0_API=dummy" >> local.properties
+        echo "PICOVOICE_ACCESS_KEY=dummy" >> local.properties
+        echo "GOOGLE_TTS_API_KEY=dummy" >> local.properties
+        echo "GCLOUD_GATEWAY_PICOVOICE_KEY=dummy" >> local.properties
+        echo "GCLOUD_GATEWAY_URL=dummy" >> local.properties
+        echo "GCLOUD_PROXY_URL=dummy" >> local.properties
+        echo "GCLOUD_PROXY_URL_KEY=dummy" >> local.properties
+        echo "REVENUE_CAT_PUBLIC_URL=dummy" >> local.properties
+        echo "REVENUECAT_API_KEY=dummy" >> local.properties
+
+    - name: Create dummy google-services.json
+      run: |
+        cat <<EOF > app/google-services.json
+        {
+          "project_info": {
+            "project_number": "1234567890",
+            "project_id": "dummy-project"
+          },
+          "client": [
+            {
+              "client_info": {
+                "mobilesdk_app_id": "1:1234567890:android:1234567890",
+                "android_client_info": {
+                  "package_name": "com.blurr.voice"
+                }
+              },
+              "api_key": [
+                {
+                  "current_key": "dummy-key"
+                }
+              ],
+              "services": {
+                "appinvite_service": {
+                  "other_platform_oauth_client": []
+                }
+              }
+            }
+          ],
+          "configuration_version": "1"
+        }
+        EOF
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Build with Gradle
+      run: ./gradlew assembleDebug
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-debug-apk
+        path: app/build/outputs/apk/debug/app-debug.apk
